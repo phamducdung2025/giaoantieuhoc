@@ -1,0 +1,5 @@
+{
+  "name": "Trình tạo Giáo án Tiểu học AI",
+  "description": "Một ứng dụng web sử dụng AI để tạo giáo án cho cấp tiểu học theo chuẩn của Bộ Giáo dục và Đào tạo Việt Nam (Công văn 2345).",
+  "requestFramePermissions": []
+}
