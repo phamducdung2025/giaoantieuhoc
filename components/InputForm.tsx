@@ -1,6 +1,6 @@
 import React from 'react';
 import type { LessonPlanInput } from '../types';
-import { SUBJECTS, GRADES } from '../constants';
+import { SUBJECTS, GRADES, BOOK_SETS } from '../constants';
 
 interface InputFormProps {
   inputData: LessonPlanInput;
@@ -35,7 +35,7 @@ const InputField: React.FC<InputFieldProps> = ({ id, label, icon, value, onChang
     value,
     onChange,
     placeholder,
-    className: "w-full pl-10 pr-3 py-2 bg-white text-gray-900 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-300 focus:border-teal-400 transition"
+    className: "w-full pl-10 pr-3 py-2 bg-white text-gray-900 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-gray-400 transition"
   };
 
   const Icon = <i className={`fa-solid ${icon} absolute left-3 top-1/2 -translate-y-1/2 text-gray-400`}></i>;
@@ -62,18 +62,15 @@ export const InputForm: React.FC<InputFormProps> = ({ inputData, setInputData, o
     const { name, value } = e.target;
     setInputData(prev => ({ ...prev, [name]: value }));
   };
+  
+  const isFormValid = 
+    inputData.lessonTitle.trim() !== '' &&
+    inputData.periods.trim() !== '' &&
+    inputData.teacherName.trim() !== '' &&
+    inputData.schoolName.trim() !== '';
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg space-y-8 sticky top-24 relative">
-      {isLoading && (
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl z-10">
-          <div className="text-center text-gray-700">
-            <div className="w-16 h-16 border-4 border-teal-500 border-dashed rounded-full animate-spin mb-4"></div>
-            <p className="font-semibold">AI đang vận dụng trí tuệ...</p>
-          </div>
-        </div>
-      )}
-
       <div className="text-center">
         <h2 className="text-2xl font-bold">Thông tin Giáo án</h2>
         <p className="text-gray-500 mt-1">Cung cấp thông tin để AI bắt đầu sáng tạo.</p>
@@ -82,6 +79,7 @@ export const InputForm: React.FC<InputFormProps> = ({ inputData, setInputData, o
       <InputSection title="Thông tin cơ bản">
         <InputField id="subject" label="Môn học" icon="fa-book" value={inputData.subject} onChange={handleChange} as="select" options={SUBJECTS} />
         <InputField id="grade" label="Lớp" icon="fa-users" value={inputData.grade} onChange={handleChange} as="select" options={GRADES} />
+        <InputField id="bookSet" label="Bộ sách" icon="fa-swatchbook" value={inputData.bookSet} onChange={handleChange} as="select" options={BOOK_SETS} />
         <InputField id="lessonTitle" label="Tên bài học" icon="fa-bookmark" value={inputData.lessonTitle} onChange={handleChange} placeholder="Tên bài dạy" />
         <InputField id="periods" label="Số tiết" icon="fa-hourglass-half" value={inputData.periods} onChange={handleChange} placeholder="Số tiết dạy" type="number" />
       </InputSection>
@@ -97,8 +95,8 @@ export const InputForm: React.FC<InputFormProps> = ({ inputData, setInputData, o
       
       <button 
         onClick={onGenerate}
-        disabled={isLoading}
-        className="w-full bg-teal-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-300 transition-all duration-300 ease-in-out flex items-center justify-center disabled:bg-teal-300 disabled:cursor-not-allowed transform hover:scale-105"
+        disabled={isLoading || !isFormValid}
+        className="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-4 focus:ring-teal-300 transition-all duration-300 ease-in-out flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed transform hover:scale-105"
       >
         {isLoading ? (
           <>

@@ -11,13 +11,29 @@ const responseSchema = {
         lop: { type: Type.STRING },
         soTiet: { type: Type.STRING },
         thoiGianThucHien: { type: Type.STRING },
-        yeuCauCanDat: { type: Type.ARRAY, items: { type: Type.STRING } },
+        yeuCauCanDat: {
+            type: Type.OBJECT,
+            properties: {
+                kienThucKyNang: { type: Type.ARRAY, items: { type: Type.STRING } },
+                nangLuc: {
+                    type: Type.OBJECT,
+                    properties: {
+                        chung: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        dacThu: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    },
+                    required: ["chung", "dacThu"]
+                },
+                phamChat: { type: Type.ARRAY, items: { type: Type.STRING } },
+            },
+            required: ["kienThucKyNang", "nangLuc", "phamChat"]
+        },
         doDungDayHoc: {
             type: Type.OBJECT,
             properties: {
                 giaoVien: { type: Type.ARRAY, items: { type: Type.STRING } },
                 hocSinh: { type: Type.ARRAY, items: { type: Type.STRING } },
             },
+            required: ["giaoVien", "hocSinh"]
         },
         hoatDong: {
             type: Type.ARRAY,
@@ -26,14 +42,17 @@ const responseSchema = {
                 properties: {
                     ten: { type: Type.STRING },
                     thoiGian: { type: Type.STRING },
-                    hoatDongGV: { type: Type.STRING },
-                    hoatDongHS: { type: Type.STRING },
+                    mucTieu: { type: Type.STRING },
+                    hoatDongGiaoVien: { type: Type.STRING, description: "Mô tả chi tiết hoạt động của giáo viên, thể hiện rõ các bước. Sử dụng ký tự xuống dòng '\n' để định dạng." },
+                    hoatDongHocSinh: { type: Type.STRING, description: "Mô tả chi tiết hoạt động của học sinh, thể hiện rõ các bước. Sử dụng ký tự xuống dòng '\n' để định dạng." },
                 },
+                required: ["ten", "thoiGian", "mucTieu", "hoatDongGiaoVien", "hoatDongHocSinh"]
             },
         },
         dieuChinh: { type: Type.STRING },
     },
 };
+
 
 const callGemini = async (prompt: string): Promise<GeneratedLessonPlan> => {
     try {
@@ -58,25 +77,55 @@ const callGemini = async (prompt: string): Promise<GeneratedLessonPlan> => {
 
 export async function generateLessonPlan(inputs: LessonPlanInput): Promise<GeneratedLessonPlan> {
   const prompt = `
-Bạn là một trợ lý AI chuyên tạo giáo án cho giáo viên tiểu học tại Việt Nam.
-Nhiệm vụ của bạn là tạo một kế hoạch bài dạy chi tiết dựa trên các thông tin sau:
+#YÊU CẦU SOẠN KẾ HOẠCH BÀI DẠY MẪU
+
+1. VAI TRÒ:
+Bạn là một giáo viên dạy giỏi cấp Quốc gia, chuyên về phương pháp giảng dạy tích cực và xây dựng giáo án theo định hướng phát triển năng lực học sinh.
+
+2. THÔNG TIN BÀI DẠY:
 - Môn học: ${inputs.subject}
 - Lớp: ${inputs.grade}
-- Tên bài học: ${inputs.lessonTitle}
-- Số tiết: ${inputs.periods}
-- Ngày dạy: ${inputs.teachingDate}
+- Bài học: ${inputs.lessonTitle}
+- Bộ sách: ${inputs.bookSet}
+- Thời lượng: ${inputs.periods} tiết
 
-Hãy tạo giáo án tuân thủ nghiêm ngặt theo cấu trúc của Công văn 2345 của Bộ Giáo dục và Đào tạo.
-Cấu trúc đầu ra phải là một đối tượng JSON. Nội dung phải sáng tạo, hấp dẫn, phù hợp với lứa tuổi học sinh tiểu học.
+3. NHIỆM VỤ:
+Soạn thảo một Kế hoạch bài dạy chi tiết, sáng tạo, và chuẩn mực, tuân thủ nghiêm ngặt cấu trúc JSON được yêu cầu và Phụ lục 3 về Hướng dẫn xây dựng Kế hoạch bài dạy.
 
-QUAN TRỌNG: Đối với mục "hoatDong" (Các hoạt động dạy học chủ yếu):
-1.  Hãy chia nhỏ "hoatDongGV" (hoạt động của giáo viên) và "hoatDongHS" (hoạt động của học sinh) thành các bước hành động cụ thể, tương ứng với nhau.
-2.  Mỗi bước hành động phải nằm trên một dòng riêng, sử dụng ký tự xuống dòng ('\\n') để phân tách.
-3.  **BẮT BUỘC**: Số lượng dòng trong "hoatDongGV" phải BẰNG CHÍNH XÁC số lượng dòng trong "hoatDongHS" để các hành động tương ứng với nhau theo từng hàng.
+4. CẤU TRÚC VÀ NỘI DUNG CHI TIẾT (Theo đúng định dạng JSON):
 
-Ví dụ cho một hoạt động:
-"hoatDongGV": "Tổ chức trò chơi 'Ai nhanh hơn' với các phép cộng trừ trong phạm vi 10.\\nChiếu các phép tính lên màn hình, yêu cầu học sinh giơ thẻ kết quả hoặc hô to đáp án.\\nKhen ngợi, động viên học sinh.",
-"hoatDongHS": "Tham gia trò chơi một cách hào hứng.\\nTính nhẩm nhanh và giơ thẻ kết quả hoặc hô to đáp án.\\nSẵn sàng cho bài học mới."
+MỤC 1: YÊU CẦU CẦN ĐẠT (yeuCauCanDat)
+- Kiến thức & Kĩ năng (kienThucKyNang): Nêu cụ thể học sinh *làm được gì* sau bài học.
+- Năng lực (nangLuc):
+  - Năng lực chung (chung): Tập trung vào Giao tiếp và Hợp tác, Tự chủ và Tự học.
+  - Năng lực đặc thù (dacThu): Tập trung vào Năng lực Ngôn ngữ và Năng lực Văn học (nếu là môn Tiếng Việt) hoặc năng lực phù hợp với môn học.
+- Phẩm chất (phamChat): Nhấn mạnh phẩm chất Nhân ái và Chăm chỉ.
+
+MỤC 2: ĐỒ DÙNG DẠY HỌC (doDungDayHoc)
+Liệt kê cụ thể, có tính ứng dụng cho giáo viên (giaoVien) và học sinh (hocSinh).
+
+MỤC 3: CÁC HOẠT ĐỘNG DẠY HỌC CHỦ YẾU (hoatDong)
+Thiết kế 4 hoạt động theo tiến trình: A. Khởi động -> B. Khám phá -> C. Luyện tập -> D. Vận dụng.
+Mỗi hoạt động phải là một object trong array hoatDong, có các trường sau:
+- ten: Tên hoạt động (VD: "A. Khởi động")
+- thoiGian: Thời gian dự kiến (VD: "5 phút")
+- mucTieu: Nêu rõ mục tiêu của hoạt động.
+- hoatDongGiaoVien: Mô tả chi tiết, rõ ràng các hành động của GIÁO VIÊN.
+- hoatDongHocSinh: Mô tả chi tiết, rõ ràng các hành động của HỌC SINH tương ứng với hoạt động của giáo viên.
+
+QUAN TRỌNG: Nội dung của 'hoatDongGiaoVien' và 'hoatDongHocSinh' khi kết hợp lại phải thể hiện được chuỗi 4 bước:
+1. Chuyển giao nhiệm vụ: GV nêu yêu cầu, HS tiếp nhận.
+2. Thực hiện nhiệm vụ: HS thực hiện (cá nhân, cặp, nhóm), GV quan sát, hỗ trợ.
+3. Báo cáo, thảo luận: HS trình bày, các HS khác nhận xét.
+4. Kết luận, nhận định: GV tổng hợp, chuẩn hóa kiến thức, động viên.
+
+Sử dụng ký tự xuống dòng ('\n') để xuống dòng và tạo các gạch đầu dòng cho dễ đọc trong các trường chuỗi dài.
+
+MỤC 4: ĐIỀU CHỈNH SAU BÀI DẠY (dieuChinh)
+Ghi một vài gợi ý thiết thực.
+
+TỔNG KẾT:
+Hãy đảm bảo rằng giáo án cuối cùng vừa khoa học, chặt chẽ, vừa thể hiện được sự vui tươi, phù hợp với tâm lý học sinh ${inputs.grade}, và phát huy được tối đa tính tích cực, chủ động của các em. Trả về kết quả dưới dạng một đối tượng JSON duy nhất, không có giải thích gì thêm.
 `;
   return callGemini(prompt);
 }
@@ -90,10 +139,8 @@ ${JSON.stringify(currentPlan)}
 Giáo viên có một yêu cầu chỉnh sửa như sau:
 "${editPrompt}"
 
-Nhiệm vụ của bạn là cập nhật lại giáo án dựa trên yêu cầu này. Hãy trả về TOÀN BỘ giáo án đã được cập nhật, giữ nguyên định dạng JSON ban đầu.
-LƯU Ý QUAN TRỌNG: Khi cập nhật mục "hoatDong", hãy đảm bảo tuân thủ quy tắc sau:
-1.  Chia nhỏ "hoatDongGV" và "hoatDongHS" thành các bước hành động trên từng dòng riêng biệt (sử dụng '\\n').
-2.  Số lượng dòng của "hoatDongGV" và "hoatDongHS" phải bằng nhau.
+Nhiệm vụ của bạn là cập nhật lại giáo án dựa trên yêu cầu này. Hãy trả về TOÀN BỘ giáo án đã được cập nhật.
+LƯU Ý QUAN TRỌNG: Phải giữ nguyên cấu trúc JSON ban đầu. Trong mỗi hoạt động, hãy đảm bảo điền đầy đủ cả hai trường "hoatDongGiaoVien" và "hoatDongHocSinh" để mô tả song song hoạt động của hai bên, và đảm bảo sự kết hợp của chúng thể hiện 4 bước của một hoạt động dạy học. Sử dụng ký tự '\n' để định dạng.
 Không thêm bất kỳ văn bản giải thích nào ngoài đối tượng JSON.
 `;
     return callGemini(prompt);

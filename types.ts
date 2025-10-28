@@ -1,7 +1,7 @@
-
 export interface LessonPlanInput {
   subject: string;
   grade: string;
+  bookSet: string;
   lessonTitle: string;
   periods: string;
   teacherName: string;
@@ -10,11 +10,21 @@ export interface LessonPlanInput {
   teachingDate: string;
 }
 
+export interface YeuCauCanDat {
+  kienThucKyNang: string[];
+  nangLuc: {
+    chung: string[];
+    dacThu: string[];
+  };
+  phamChat: string[];
+}
+
 export interface TeachingActivity {
-  ten: string;
-  thoiGian: string;
-  hoatDongGV: string;
-  hoatDongHS: string;
+  ten: string; // e.g., "A. Khởi động"
+  thoiGian: string; // e.g., "5 phút"
+  mucTieu: string;
+  hoatDongGiaoVien: string; // Describes teacher's activities
+  hoatDongHocSinh: string; // Describes student's activities
 }
 
 export interface GeneratedLessonPlan {
@@ -23,7 +33,7 @@ export interface GeneratedLessonPlan {
   lop: string;
   soTiet: string;
   thoiGianThucHien: string;
-  yeuCauCanDat: string[];
+  yeuCauCanDat: YeuCauCanDat;
   doDungDayHoc: {
     giaoVien: string[];
     hocSinh: string[];

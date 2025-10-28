@@ -22,3 +22,9 @@ export const GRADES = [
   "Lớp 4",
   "Lớp 5"
 ];
+
+export const BOOK_SETS = [
+  "Chân trời sáng tạo",
+  "Cánh Diều",
+  "Kết nối tri thức với cuộc sống"
+];

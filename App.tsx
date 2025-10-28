@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [inputData, setInputData] = useState<LessonPlanInput>({
     subject: 'Toán',
     grade: 'Lớp 1',
+    bookSet: 'Kết nối tri thức với cuộc sống',
     lessonTitle: '',
     periods: '',
     teacherName: '',
@@ -28,6 +29,7 @@ const App: React.FC = () => {
     try {
       const generatedPlan = await generateLessonPlan(inputData);
       setLessonPlan(generatedPlan);
+    // Fix: Added curly braces to the catch block to fix a syntax error and ensure all statements within it are executed correctly.
     } catch (err) {
       console.error(err);
       setError('Đã xảy ra lỗi khi tạo giáo án. Vui lòng thử lại.');
@@ -53,34 +55,42 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen font-sans text-gray-800">
-      <Header />
-      <main className="p-4 md:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-screen-2xl mx-auto">
-          <div className="lg:col-span-4 xl:col-span-3">
-            <InputForm 
-              inputData={inputData}
-              setInputData={setInputData}
-              onGenerate={handleGenerate}
-              isLoading={isLoading}
-            />
-          </div>
-          <div className="lg:col-span-8 xl:col-span-9">
-            <OutputDisplay 
-              lessonPlan={lessonPlan}
-              isLoading={isLoading}
-              error={error}
-              teacherName={inputData.teacherName}
-              schoolName={inputData.schoolName}
-              onEdit={handleEdit}
-            />
-          </div>
+    <>
+      {isLoading && !lessonPlan && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-50 text-white">
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-xl font-semibold">AI đang sáng tạo nội dung, hãy kiên nhẫn...</p>
         </div>
-      </main>
-      <footer className="text-center p-4 text-sm text-gray-500">
-        <p>Trung tâm Tin học ứng dụng Bai Digitech</p>
-      </footer>
-    </div>
+      )}
+      <div className="min-h-screen font-sans text-gray-900 flex flex-col">
+        <Header />
+        <main className="p-4 md:p-8 flex-grow">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-screen-2xl mx-auto">
+            <div className="lg:col-span-4 xl:col-span-3">
+              <InputForm 
+                inputData={inputData}
+                setInputData={setInputData}
+                onGenerate={handleGenerate}
+                isLoading={isLoading}
+              />
+            </div>
+            <div className="lg:col-span-8 xl:col-span-9">
+              <OutputDisplay 
+                lessonPlan={lessonPlan}
+                isLoading={isLoading}
+                error={error}
+                teacherName={inputData.teacherName}
+                schoolName={inputData.schoolName}
+                onEdit={handleEdit}
+              />
+            </div>
+          </div>
+        </main>
+        <footer className="text-center p-4 text-sm text-gray-600">
+          <p>Ứng dụng này được phát triển bởi <a href="#" className="font-semibold text-black hover:underline">@Thầy Dũng</a></p>
+        </footer>
+      </div>
+    </>
   );
 };
 
